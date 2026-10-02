@@ -164,5 +164,3 @@ git add .
 git status
 git commit -m "Add music recommendation and analysis app"
 ```
-
-Create an empty repository on GitHub, then push this folder. Do not commit `.venv` or `data/app.db`.
