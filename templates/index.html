@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Music Recommendation &amp; Analysis System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <p class="eyebrow">Course project</p>
+      <h1>Music Recommendation &amp; Analysis System</h1>
+      <p class="lede">
+        Search the dataset, look at a song's audio features, and get other songs
+        with a similar feature profile.
+      </p>
+      {% if song_count %}
+        <p class="meta">
+          {{ "{:,}".format(song_count) }} songs after cleaning
+          {% if raw_count %}from {{ "{:,}".format(raw_count) }} playlist rows{% endif %}.
+        </p>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="wrap">
+    <noscript>
+      <p class="banner" role="alert">This page needs JavaScript to search and draw the charts.</p>
+    </noscript>
+
+    {% if dataset_error %}
+      <p class="banner" role="alert">{{ dataset_error }}</p>
+    {% endif %}
+    <p id="message" class="banner" role="status" hidden></p>
+
+    <section class="panel">
+      <h2>Find a song</h2>
+      <form id="search-form" action="/" method="get">
+        <div class="search-row">
+          <div class="field grow">
+            <label for="query">Song or artist</label>
+            <input id="query" name="q" type="search" placeholder="Try Blinding Lights or The Weeknd" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="count">How many</label>
+            <select id="count" name="n">
+              <option value="5">5</option>
+              <option value="8" selected>8</option>
+              <option value="12">12</option>
+            </select>
+          </div>
+          <button type="submit">Search</button>
+        </div>
+      </form>
+      <p class="hint">The search looks at titles and artist names in this dataset only. It does not call Spotify.</p>
+      <ul id="results" class="result-list"></ul>
+    </section>
+
+    <section class="detail-grid">
+      <article class="panel">
+        <h2>Selected song</h2>
+        <p id="selected-empty" class="empty">Select a search result to see its audio features.</p>
+        <div id="selected-body" hidden></div>
+      </article>
+      <article class="panel">
+        <h2>Similar songs</h2>
+        <p class="hint">A cosine similarity near 1 is common here. It means these seven features point in a similar direction, not that the songs sound identical, and it is not an accuracy score.</p>
+        <p id="recs-empty" class="empty">Recommendations show up here after you select a song.</p>
+        <ol id="recs" class="rec-list"></ol>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>How the features relate</h2>
+      <p class="hint">
+        These charts describe the cleaned dataset. They are not a score for the recommender,
+        and they are not a measure of accuracy.
+      </p>
+      <div class="chart-grid">
+        <div>
+          <h3>Feature correlation</h3>
+          <p class="hint">Pearson correlation. A value near 1 means the two features rise together.</p>
+          <div id="heatmap" class="heatmap-wrap"></div>
+        </div>
+        <div>
+          <h3>Energy and valence</h3>
+          <p class="hint">
+            Each dot is one song from a fixed sample. Darker dots are more danceable.
+            The ring is the song you selected.
+          </p>
+          <canvas id="scatter" aria-label="Scatter plot of energy and valence"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Recent recommendation history</h2>
+      <p class="hint">Saved in a local SQLite file, <code>data/app.db</code>. There are no user accounts.</p>
+      <ul id="history" class="history-list"></ul>
+    </section>
+
+    <section class="panel notes">
+      <h2>What the recommender is doing</h2>
+      <p>
+        Each song is a vector of seven audio features: danceability, energy, valence,
+        tempo, acousticness, instrumentalness, and loudness. Those numbers are
+        standardized so tempo and loudness do not overwhelm the 0–1 features.
+        Similarity is the cosine similarity of the standardized vectors. The closest
+        other songs are the recommendations.
+      </p>
+      <p>
+        Popularity is shown as context and is used only to pick which duplicate row
+        to keep and to sort search results. It is not part of the similarity math.
+        Playlist genre comes from the playlist a track was collected in, so treat it
+        as a hint rather than an official genre.
+      </p>
+    </section>
+  </main>
+
+  <footer class="wrap site-footer">
+    <p>
+      Audio features come from Spotify via the TidyTuesday 2020-01-21
+      <code>spotify_songs.csv</code> file. Recommendations can only use songs in that file.
+    </p>
+  </footer>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
